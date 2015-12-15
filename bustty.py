@@ -9,7 +9,7 @@ def main():
         description='Display Capital Metro bus stop departures')
     parser.add_argument('stop', type=int, help='the bus stop id')
     parser.add_argument('route', type=int, nargs='?',
-        help='the bus route number')
+        help='the bus route number, to show a single route')
     parser.add_argument('--n', metavar='N', dest='num_results', type=int,
         default=3, help='the number of departures to display (default: 3)')
     args = parser.parse_args()
