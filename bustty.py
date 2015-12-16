@@ -1,6 +1,8 @@
 #!/usr/bin/python
 import argparse
+import curses
 import re
+import time
 import urllib
 import xml.etree.ElementTree as ElementTree
 
@@ -19,8 +21,32 @@ def main():
         exit(1)
 
     stop = Stop(args.stop, args.route, args.num_results)
-    stop.update()
-    print stop
+
+    stdscr = curses.initscr()
+    curses.noecho()
+    curses.cbreak()
+    curses.curs_set(0)
+    curses.mousemask(1)
+    stdscr.keypad(1)
+    stdscr.nodelay(1)
+
+    secs = 0
+    while True:
+        if secs % 30 == 0:
+            stop.update()
+            stdscr.clear()
+            stdscr.addstr(str(stop), curses.A_BOLD)
+            stdscr.refresh()
+            secs = 0
+
+        time.sleep(1)
+        secs += 1
+        if stdscr.getch() != -1: break
+
+    curses.curs_set(1)
+    curses.nocbreak()
+    curses.echo()
+    curses.endwin()
 
 class Stop:
     base_url = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
