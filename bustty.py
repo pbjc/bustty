@@ -14,22 +14,23 @@ def main():
         default=3, help='the number of departures to display (default: 3)')
     args = parser.parse_args()
 
-    stop = Stop(args.stop, args.route, args.num_results)
-    try:
-        stop.update()
-    except InvalidStopIdException:
+    if not Stop.valid_stop_id(args.stop):
         print 'Invalid stop id:', args.stop
         exit(1)
+
+    stop = Stop(args.stop, args.route, args.num_results)
+    stop.update()
     print stop
 
 class Stop:
-    def __init__(self, stop, route=None, num_results=3):
-        base_url = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
-        self.nextbus_url = ''
+    base_url = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
+
+    def __init__(self, stop_id, route=None, num_results=3):
         if route:
-            self.nextbus_url = (base_url + '&route={}').format(stop, route)
+            self.nextbus_url = (Stop.base_url + '&route={}').format(
+                stop_id, route)
         else:
-            self.nextbus_url = base_url.format(stop)
+            self.nextbus_url = Stop.base_url.format(stop_id)
         self.num_results = num_results
         self.description = ''
         self.departures = []
@@ -57,6 +58,11 @@ class Stop:
                 self.departures.append(Departure(sign, time, minutes))
             except StopIteration:
                 break
+
+    @staticmethod
+    def valid_stop_id(stop_id):
+        xml_str = urllib.urlopen(Stop.base_url.format(stop_id)).read()
+        return ElementTree.fromstring(xml_str)[0][0].find('faultcode') is None
 
     def __str__(self):
         lines = []
