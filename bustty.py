@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import argparse
 import curses
+import datetime
 import re
 import time
 import urllib
@@ -27,26 +28,30 @@ def main():
     display = Display()
     display.begin()
 
-    secs = 0
+    last_update = datetime.datetime.now() - datetime.timedelta(0, 30)
     while True:
-        if secs % 30 == 0:
+        now = datetime.datetime.now()
+        if (now - last_update).total_seconds() >= 30:
             stop.update()
-
             display.stdscr.clear()
             draw_method = display.stdscr.addstr
             if args.pretty_print:
                 draw_method = display.draw_text
             try:
-                draw_method(str(stop))
+                draw_method(stop.description)
+                draw_method('\n')
+                for departure in stop.departures:
+                    draw_method(departure.sign,
+                        curses.color_pair(1) | curses.A_STANDOUT)
+                    draw_method(' ')
+                    draw_method(departure.time_notification(),
+                        curses.color_pair(2) | curses.A_STANDOUT)
+                    draw_method('\n')
             except:
-                display.end_session()
-                print 'ncurses draw error. Terminal is probably too small.'
-                exit(1)
-
+                pass
             display.stdscr.refresh()
-            secs = 0
-        time.sleep(1)
-        secs += 1
+            last_update = now
+
         if display.any_input(): break
 
     display.end_session()
@@ -108,11 +113,13 @@ class Departure:
         self.time = time
         self.minutes = minutes
 
-    def __str__(self):
+    def time_notification(self):
         if self.minutes:
-            return '{} {} min'.format(self.sign, self.minutes)
-        else:
-            return '{} {}'.format(self.sign, self.time)
+            return self.minutes + ' min'
+        return self.time
+
+    def __str__(self):
+        return '{} {}'.format(self.sign, self.time_notification())
 
 class Display:
     FONT_WIDTH = 3
@@ -128,6 +135,9 @@ class Display:
         curses.cbreak()
         curses.curs_set(0)
         curses.mousemask(1)
+        curses.start_color()
+        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_BLACK)
+        curses.init_pair(2, curses.COLOR_CYAN, curses.COLOR_BLACK)
 
     def end_session(self):
         curses.mousemask(0)
@@ -136,19 +146,27 @@ class Display:
         curses.echo()
         curses.endwin()
 
+    def draw_char(self, char, attribute=curses.A_STANDOUT):
+        assert len(char) == 1
+        orig_pos = self.stdscr.getyx()
+
+        if char == '\n':
+            self.stdscr.move(orig_pos[0] + Display.FONT_HEIGHT + 1, 0)
+            return
+
+        char = char.upper()
+        bitmap = Display.font[char]
+        for i in xrange(Display.FONT_HEIGHT):
+            for j in xrange(Display.FONT_WIDTH):
+                offset = i * Display.FONT_WIDTH + j
+                self.stdscr.addstr(' ', attribute if bitmap[offset] else 0)
+            self.stdscr.move(orig_pos[0] + i + 1, orig_pos[1])
+
+        self.stdscr.move(orig_pos[0], orig_pos[1] + Display.FONT_WIDTH + 1)
+
     def draw_text(self, text, attribute=curses.A_STANDOUT):
-        text = text.upper()
-        lines = text.split('\n')
-        for line in lines:
-            for i in range(Display.FONT_HEIGHT):
-                for c in line:
-                    self.stdscr.addstr(' ')
-                    bitmap = Display.font[c]
-                    for j in range(i * Display.FONT_WIDTH,
-                                   (i + 1) * Display.FONT_WIDTH):
-                        self.stdscr.addstr(' ', attribute if bitmap[j] else 0)
-                self.stdscr.addstr('\n')
-            self.stdscr.addstr('\n')
+        for char in text:
+            self.draw_char(char, attribute)
 
     def any_input(self):
         return self.stdscr.getch() != -1
