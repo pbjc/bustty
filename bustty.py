@@ -14,8 +14,8 @@ def main():
         help='the bus route number, to show a single route')
     parser.add_argument('--n', metavar='N', dest='num_results', type=int,
         default=3, help='the number of departures to display (default: 3)')
-    parser.add_argument('--pretty', action='store_true', dest='pretty_print',
-        help='display in a \'digital\' font')
+    parser.add_argument('--digital', action='store_true', dest='pretty_print',
+        help='use a blocky font reminiscent of your microwave')
     parser.set_defaults(pretty_print=False)
     args = parser.parse_args()
 
