@@ -31,8 +31,8 @@ def main():
     display = Display()
     display.begin()
 
-    last_update = datetime.datetime.now() - datetime.timedelta(0, 30)
     try:
+        last_update = datetime.datetime.now() - datetime.timedelta(0, 30)
         while True:
             now = datetime.datetime.now()
             if (now - last_update).total_seconds() >= 30:
