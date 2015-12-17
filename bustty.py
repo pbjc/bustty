@@ -91,9 +91,9 @@ class Stop:
                 run = runs.next()
                 sign = run.find('Sign').text
                 realtime = run.find('Realtime')
-                time = realtime.find('Estimatedtime').text
-                minutes = realtime.find('Estimatedminutes').text.lstrip()
-                self.departures.append(Departure(sign, time, minutes))
+                est_time = realtime.find('Estimatedtime').text
+                est_minutes = realtime.find('Estimatedminutes').text.lstrip()
+                self.departures.append(Departure(sign, est_time, est_minutes))
             except StopIteration:
                 break
 
@@ -112,15 +112,22 @@ class InvalidStopIdException(Exception):
     pass
 
 class Departure:
-    def __init__(self, sign, time, minutes):
+    def __init__(self, sign, est_time, est_minutes):
         self.sign = sign
-        self.time = time
-        self.minutes = minutes
+        self.est_time = est_time
+        self.est_minutes = est_minutes
 
     def time_notification(self):
-        if self.minutes:
-            return self.minutes + ' min'
-        return self.time
+        if self.est_minutes:
+            if int(self.est_minutes) < 3:
+                return 'Due'
+            return self.est_minutes + ' min'
+        parsed_time = datetime.datetime.fromtimestamp(
+            time.mktime(time.strptime(self.est_time, '%H:%M %p')))
+        now = datetime.datetime.now()
+        if (now - parsed_time).total_seconds() < 60 * 3:
+            return 'Due'
+        return self.est_time
 
     def __str__(self):
         return '{} {}'.format(self.sign, self.time_notification())
