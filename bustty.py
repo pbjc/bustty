@@ -125,7 +125,7 @@ class Departure:
         parsed_time = datetime.datetime.fromtimestamp(
             time.mktime(time.strptime(self.est_time, '%H:%M %p')))
         now = datetime.datetime.now()
-        if (now - parsed_time).total_seconds() < 60 * 3:
+        if (parsed_time - now).total_seconds() < 60 * 3:
             return 'Due'
         return self.est_time
 
