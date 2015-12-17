@@ -13,11 +13,14 @@ def main():
     parser.add_argument('stop', type=int, help='the bus stop id')
     parser.add_argument('route', type=int, nargs='?',
         help='the bus route number, to show a single route')
+    parser.add_argument('-d', action='store_false', dest='any_input_quit',
+        help='don\'t quit on any input')
+    parser.add_argument('--block', action='store_true', dest='pretty_print',
+        help='use a blocky 3x5 bitmap font')
     parser.add_argument('--n', metavar='N', dest='num_results', type=int,
         default=3, help='the number of departures to display (default: 3)')
-    parser.add_argument('--digital', action='store_true', dest='pretty_print',
-        help='use a blocky font reminiscent of your microwave')
     parser.set_defaults(pretty_print=False)
+    parser.set_defaults(any_input_quit=True)
     args = parser.parse_args()
 
     if not Stop.valid_stop_id(args.stop):
@@ -29,32 +32,33 @@ def main():
     display.begin()
 
     last_update = datetime.datetime.now() - datetime.timedelta(0, 30)
-    while True:
-        now = datetime.datetime.now()
-        if (now - last_update).total_seconds() >= 30:
-            stop.update()
-            display.stdscr.clear()
-            draw_method = display.stdscr.addstr
-            if args.pretty_print:
-                draw_method = display.draw_text
-            try:
-                draw_method(stop.description)
-                draw_method('\n')
-                for departure in stop.departures:
-                    draw_method(departure.sign,
-                        curses.color_pair(1) | curses.A_STANDOUT)
-                    draw_method(' ')
-                    draw_method(departure.time_notification(),
-                        curses.color_pair(2) | curses.A_STANDOUT)
+    try:
+        while True:
+            now = datetime.datetime.now()
+            if (now - last_update).total_seconds() >= 30:
+                stop.update()
+                display.stdscr.clear()
+                draw_method = display.stdscr.addstr
+                if args.pretty_print:
+                    draw_method = display.draw_text
+                try:
+                    draw_method(stop.description)
                     draw_method('\n')
-            except:
-                pass
-            display.stdscr.refresh()
-            last_update = now
+                    for departure in stop.departures:
+                        draw_method(departure.sign,
+                            curses.color_pair(1) | curses.A_STANDOUT)
+                        draw_method(' ')
+                        draw_method(departure.time_notification(),
+                            curses.color_pair(2) | curses.A_STANDOUT)
+                        draw_method('\n')
+                except:
+                    pass
+                display.stdscr.refresh()
+                last_update = now
 
-        if display.any_input(): break
-
-    display.end_session()
+            if args.any_input_quit and display.any_input(): break
+    finally:
+        display.end_session()
 
 class Stop:
     base_url = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
