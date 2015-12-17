@@ -15,11 +15,11 @@ def main():
         help='the bus route number, to show a single route')
     parser.add_argument('-d', action='store_false', dest='any_input_quit',
         help='don\'t quit on any input')
-    parser.add_argument('--block', action='store_true', dest='pretty_print',
+    parser.add_argument('--block', action='store_true', dest='use_block_font',
         help='use a blocky 3x5 bitmap font')
     parser.add_argument('--n', metavar='N', dest='num_results', type=int,
         default=3, help='the number of departures to display (default: 3)')
-    parser.set_defaults(pretty_print=False)
+    parser.set_defaults(use_block_font=False)
     parser.set_defaults(any_input_quit=True)
     args = parser.parse_args()
 
@@ -39,7 +39,7 @@ def main():
                 stop.update()
                 display.stdscr.clear()
                 draw_method = display.stdscr.addstr
-                if args.pretty_print:
+                if args.use_block_font:
                     draw_method = display.draw_text
                 try:
                     draw_method(stop.description)
