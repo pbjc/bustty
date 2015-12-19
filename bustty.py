@@ -19,8 +19,7 @@ def main():
         help='use a blocky 3x5 bitmap font')
     parser.add_argument('--n', metavar='N', dest='num_results', type=int,
         default=3, help='the number of departures to display (default: 3)')
-    parser.set_defaults(use_block_font=False)
-    parser.set_defaults(any_input_quit=True)
+    parser.set_defaults(use_block_font=False, any_input_quit=True)
     args = parser.parse_args()
 
     if not Stop.valid_stop_id(args.stop):
@@ -41,6 +40,7 @@ def main():
                 draw_method = display.stdscr.addstr
                 if args.use_block_font:
                     draw_method = display.draw_text
+
                 try:
                     draw_method(stop.description)
                     draw_method('\n')
@@ -52,7 +52,9 @@ def main():
                             curses.color_pair(2) | curses.A_STANDOUT)
                         draw_method('\n')
                 except:
+                    # TODO: handle ncurses errors instead of ignoring them
                     pass
+
                 display.stdscr.refresh()
                 last_update = now
 
@@ -122,6 +124,7 @@ class Departure:
             if int(self.est_minutes) < 3:
                 return 'Due'
             return self.est_minutes + ' min'
+
         parsed_time = datetime.datetime.fromtimestamp(
             time.mktime(time.strptime(self.est_time, '%H:%M %p')))
         now = datetime.datetime.now()
