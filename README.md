@@ -5,7 +5,7 @@ A terminal-based display for Cap Metro bus stop departures.
 
 ![screenshot](images/screenshot.png)
 
-    usage: bustty.py [-d] [--block] [--n N] stop [route]
+    usage: bustty [-d] [--block] [--n N] stop [route]
       -d      don't quit on any input
       --block use a blocky 3x5 bitmap font
       --n N   the number of departures to display (default: 3)
