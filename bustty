@@ -7,6 +7,8 @@ import time
 import urllib
 import xml.etree.ElementTree as ElementTree
 
+REFRESH_INTERVAL = 30
+
 def main():
     parser = argparse.ArgumentParser(
         description='Display Capital Metro bus stop departures')
@@ -31,10 +33,11 @@ def main():
     display.begin()
 
     try:
-        last_update = datetime.datetime.now() - datetime.timedelta(0, 30)
+        last_update = datetime.datetime.now() - datetime.timedelta(
+            0, REFRESH_INTERVAL)
         while True:
             now = datetime.datetime.now()
-            if (now - last_update).total_seconds() >= 30:
+            if (now - last_update).total_seconds() >= REFRESH_INTERVAL:
                 stop.update()
                 display.stdscr.clear()
                 draw_method = display.stdscr.addstr
