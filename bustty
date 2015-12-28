@@ -63,14 +63,14 @@ def main():
         display.end_session()
 
 class Stop:
-    base_url = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
+    BASE_URL = 'https://www.capmetro.org/planner/s_nextbus2.asp?stopid={}'
 
     def __init__(self, stop_id, route=None, num_results=3):
         if route:
-            self.nextbus_url = (Stop.base_url + '&route={}').format(
+            self.nextbus_url = (Stop.BASE_URL + '&route={}').format(
                 stop_id, route)
         else:
-            self.nextbus_url = Stop.base_url.format(stop_id)
+            self.nextbus_url = Stop.BASE_URL.format(stop_id)
         self.num_results = num_results
         self.description = ''
         self.departures = []
@@ -101,7 +101,7 @@ class Stop:
 
     @staticmethod
     def valid_stop_id(stop_id):
-        xml_str = urllib.urlopen(Stop.base_url.format(stop_id)).read()
+        xml_str = urllib.urlopen(Stop.BASE_URL.format(stop_id)).read()
         return ElementTree.fromstring(xml_str)[0][0].find('faultcode') is None
 
     def __str__(self):
