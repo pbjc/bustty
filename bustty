@@ -32,6 +32,7 @@ def main():
     display = Display()
     display.begin()
 
+    # TODO: handle errors more gracefully
     try:
         last_update = datetime.datetime.now() - datetime.timedelta(
             0, REFRESH_INTERVAL)
@@ -44,19 +45,15 @@ def main():
                 if args.use_block_font:
                     draw_method = display.draw_text
 
-                try:
-                    draw_method(stop.description)
+                draw_method(stop.description)
+                draw_method('\n')
+                for departure in stop.departures:
+                    draw_method(departure.sign,
+                        curses.color_pair(1) | curses.A_STANDOUT)
+                    draw_method(' ')
+                    draw_method(departure.time_notification(),
+                        curses.color_pair(2) | curses.A_STANDOUT)
                     draw_method('\n')
-                    for departure in stop.departures:
-                        draw_method(departure.sign,
-                            curses.color_pair(1) | curses.A_STANDOUT)
-                        draw_method(' ')
-                        draw_method(departure.time_notification(),
-                            curses.color_pair(2) | curses.A_STANDOUT)
-                        draw_method('\n')
-                except:
-                    # TODO: handle ncurses errors instead of ignoring them
-                    pass
 
                 display.stdscr.refresh()
                 last_update = now
