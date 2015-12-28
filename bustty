@@ -114,6 +114,8 @@ class InvalidStopIdException(Exception):
     pass
 
 class Departure:
+    DUE_TIME = 60 * 3
+
     def __init__(self, sign, est_time, est_minutes):
         self.sign = sign
         self.est_time = est_time
@@ -128,7 +130,7 @@ class Departure:
         parsed_time = datetime.datetime.fromtimestamp(
             time.mktime(time.strptime(self.est_time, '%H:%M %p')))
         now = datetime.datetime.now()
-        if (parsed_time - now).total_seconds() < 60 * 3:
+        if (now - parsed_time).total_seconds() < self.DUE_TIME:
             return 'Due'
         return self.est_time
 
